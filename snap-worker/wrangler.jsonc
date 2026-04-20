@@ -1,0 +1,37 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	// Set CLOUDFLARE_ACCOUNT_ID env var instead of hardcoding here
+	// "account_id": "",
+	"name": "snap-updates",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-03-10",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
+	"assets": {
+		"directory": "./public"
+	},
+	"observability": {
+		"enabled": true
+	},
+	"upload_source_maps": true,
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "snap-catalogue",
+			"database_id": "7e3e62ef-bbda-442b-b578-d91aea88cca1"
+		}
+	],
+	"vars": {
+		"API_BASE_URL": "https://api.snapcraft.io/api/v1/snaps/search"
+	},
+	"triggers": {
+		"crons": ["*/15 * * * *", "0 3 * * *"]
+	},
+	// Routes will be configured via Cloudflare dashboard or wrangler deploy
+}

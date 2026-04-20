@@ -1,0 +1,12 @@
+{
+  "name": "tessleng/spec-driven-development",
+  "version": "0.0.7",
+  "summary": "Overview of the spec-driven workflow, including rules for how to structure new tasks with specs, spec format, and spec styleguide.",
+  "private": true,
+  "docs": "index.md",
+  "steering": {
+    "sdd-workflow": {
+      "rules": "index.md"
+    }
+  }
+}

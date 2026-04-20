@@ -1,0 +1,9 @@
+{
+  "name": "my-project",
+  "mode": "vendored",
+  "dependencies": {
+    "tessleng/spec-driven-development": {
+      "version": "0.0.7"
+    }
+  }
+}

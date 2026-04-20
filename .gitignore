@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Database files
+snap_catalogue.db
+db_backup/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Wrangler / Cloudflare
+.wrangler/
+.dev.vars*
+.env*
+
+# Generated files
+worker-configuration.d.ts
+public/vanilla.min.css
+
+# Logs
+*.log
+
+# Editor / AI tool configs
+.vscode/
+.claude/
+.codex/
+.cursor/
+.gemini/
+
+# Project files not for public
+PLAN.md
+
+# Build / cache
+coverage/
+*.tsbuildinfo
+*.tgz
