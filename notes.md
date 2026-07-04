@@ -23,3 +23,10 @@ Run 2026-07-04: Repo Assist actions
 - Commented on issue #15 about `toLocaleString` formatting and the regression test
 - Created draft PR for `formatDate` consistency and test coverage
 - Validation: `npx tsc --noEmit` passed; `npm test -- --run` still fails on pre-existing Vitest/@cloudflare/vitest-pool-workers config resolution issue
+
+Run 2026-07-04: Repo Assist actions
+
+- Created branch: repo-assist/improve-readme-contributing-2026-07-04
+- Commented on issue #12 about the missing root-level `.editorconfig` while `snap-worker/.editorconfig` already exists
+- Added a README link to CONTRIBUTING.md and prepared a draft PR from the branch
+- Updated Monthly Activity issue #40
