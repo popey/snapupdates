@@ -15,3 +15,11 @@ Run 2026-07-01: Repo Assist actions
 - Created draft PR for workflow noise reduction (branch compare link: https://github.com/popey/snapupdates/compare/main...repo-assist/eng-reduce-workflow-noise-2026-07-01)
 - Closed Monthly Activity issue #30
 - Created Monthly Activity issue #<pending> for July 2026
+
+
+Run 2026-07-04: Repo Assist actions
+
+- Created branch: repo-assist/improve-formatDate-2026-07-04
+- Commented on issue #15 about `toLocaleString` formatting and the regression test
+- Created draft PR for `formatDate` consistency and test coverage
+- Validation: `npx tsc --noEmit` passed; `npm test -- --run` still fails on pre-existing Vitest/@cloudflare/vitest-pool-workers config resolution issue
