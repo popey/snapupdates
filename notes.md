@@ -30,3 +30,11 @@ Run 2026-07-04: Repo Assist actions
 - Commented on issue #12 about the missing root-level `.editorconfig` while `snap-worker/.editorconfig` already exists
 - Added a README link to CONTRIBUTING.md and prepared a draft PR from the branch
 - Updated Monthly Activity issue #40
+
+Run 2026-07-05: Repo Assist actions
+
+- Created branch: repo-assist/improve-root-editorconfig-2026-07-05
+- Added a repository-root `.editorconfig` to standardize formatting across the repo
+- Commented on issue #47 about ET budget exhaustion and suggested scope/budget adjustments
+- Created a draft PR branch for the editorconfig change and updated the July monthly activity issue
+- Validation: `git diff --check` passed; `npx tsc --noEmit` passed after `wrangler types`; `npm test -- --run` still fails on the pre-existing Vitest/@cloudflare/vitest-pool-workers config resolution issue
