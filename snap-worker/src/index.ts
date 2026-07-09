@@ -94,8 +94,27 @@ function safeHref(url: string | undefined): string | undefined {
 	return url && /^https?:\/\//i.test(url) ? url : undefined;
 }
 
+const RENDER_MARKDOWN_CACHE_SIZE = 256;
+const renderMarkdownCache = new Map<string, string>();
+const UTC_DATE_FORMATTER = new Intl.DateTimeFormat('en-GB', {
+	day: 'numeric',
+	month: 'short',
+	year: 'numeric',
+	hour: '2-digit',
+	minute: '2-digit',
+	timeZone: 'UTC',
+});
+
 function renderMarkdown(text: string | null | undefined): string {
 	if (!text) return '';
+
+	const cached = renderMarkdownCache.get(text);
+	if (cached !== undefined) {
+		renderMarkdownCache.delete(text);
+		renderMarkdownCache.set(text, cached);
+		return cached;
+	}
+
 	const escaped = escapeHtml(text);
 	const withLists = escaped
 		.replace(/^   (.*)$/gm, '<pre><code>$1</code></pre>')
@@ -109,23 +128,27 @@ function renderMarkdown(text: string | null | undefined): string {
 	for (const group of listGroups) {
 		result = result.replace(group, `<ul>${group.replace(/\n$/, '')}</ul>`);
 	}
-	return result
+
+	const rendered = result
 		.replace(/\n\n+/g, '<br><br>')
 		.replace(/\n(?!\s*(<ul|<\/ul>|<li|<pre|<code|<a|$))/g, '<br>');
+
+	renderMarkdownCache.set(text, rendered);
+	if (renderMarkdownCache.size > RENDER_MARKDOWN_CACHE_SIZE) {
+		const oldestKey = renderMarkdownCache.keys().next().value;
+		if (oldestKey !== undefined) {
+			renderMarkdownCache.delete(oldestKey);
+		}
+	}
+
+	return rendered;
 }
 
 function formatDate(dateStr: string | null | undefined): string {
 	if (!dateStr) return 'Unknown';
 	try {
 		const date = new Date(dateStr);
-		return date.toLocaleDateString('en-GB', {
-			day: 'numeric',
-			month: 'short',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit',
-			timeZone: 'UTC',
-		}) + ' UTC';
+		return `${UTC_DATE_FORMATTER.format(date)} UTC`;
 	} catch {
 		return dateStr;
 	}
