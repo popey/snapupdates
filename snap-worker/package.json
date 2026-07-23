@@ -7,11 +7,11 @@
 		"deploy": "npm run build:css && wrangler deploy",
 		"dev": "npm run build:css && wrangler dev",
 		"start": "npm run build:css && wrangler dev",
-		"test": "vitest",
+		"test": "vitest run",
 		"cf-typegen": "wrangler types"
 	},
 	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "^0.15.2",
+		"@cloudflare/vitest-pool-workers": "^0.18.7",
 		"@types/node": "^25.5.0",
 		"better-sqlite3": "^12.8.0",
 		"sass": "^1.99.0",
@@ -19,6 +19,6 @@
 		"typescript": "^5.5.2",
 		"vanilla-framework": "^4.48.0",
 		"vitest": "^4.1.0",
-		"wrangler": "^4.78.0"
+		"wrangler": "^4.113.0"
 	}
 }
