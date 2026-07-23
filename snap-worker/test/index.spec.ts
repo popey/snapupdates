@@ -7,48 +7,42 @@ import {
 import { describe, it, expect } from "vitest";
 import worker from "../src";
 
-describe("Hello World user worker", () => {
-	describe("request for /message", () => {
-		it('/ responds with "Hello, World!" (unit style)', async () => {
-			const request = new Request<unknown, IncomingRequestCfProperties>(
-				"http://example.com/message"
-			);
-			// Create an empty context to pass to `worker.fetch()`.
-			const ctx = createExecutionContext();
-			const response = await worker.fetch(request, env, ctx);
-			// Wait for all `Promise`s passed to `ctx.waitUntil()` to settle before running test assertions
-			await waitOnExecutionContext(ctx);
-			expect(await response.text()).toMatchInlineSnapshot(`"Hello, World!"`);
-		});
+async function fetchWorker(request: Request): Promise<Response> {
+	const ctx = createExecutionContext();
+	const response = await worker.fetch(request, env, ctx);
+	await waitOnExecutionContext(ctx);
+	return response;
+}
 
-		it('responds with "Hello, World!" (integration style)', async () => {
-			const request = new Request("http://example.com/message");
-			const response = await SELF.fetch(request);
-			expect(await response.text()).toMatchInlineSnapshot(`"Hello, World!"`);
-		});
+describe("Snap Store Updates worker", () => {
+	it("renders the about page through the worker directly", async () => {
+		const response = await fetchWorker(new Request("http://example.com/about"));
+
+		expect(response.status).toBe(200);
+		expect(response.headers.get("content-type")).toContain("text/html");
+		expect(await response.text()).toContain("About Snap Store Updates");
 	});
 
-	describe("request for /random", () => {
-		it("/ responds with a random UUID (unit style)", async () => {
-			const request = new Request<unknown, IncomingRequestCfProperties>(
-				"http://example.com/random"
-			);
-			// Create an empty context to pass to `worker.fetch()`.
-			const ctx = createExecutionContext();
-			const response = await worker.fetch(request, env, ctx);
-			// Wait for all `Promise`s passed to `ctx.waitUntil()` to settle before running test assertions
-			await waitOnExecutionContext(ctx);
-			expect(await response.text()).toMatch(
-				/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/
-			);
-		});
+	it("renders the about page through the integration binding", async () => {
+		const response = await SELF.fetch("http://example.com/about");
 
-		it("responds with a random UUID (integration style)", async () => {
-			const request = new Request("http://example.com/random");
-			const response = await SELF.fetch(request);
-			expect(await response.text()).toMatch(
-				/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/
-			);
-		});
+		expect(response.status).toBe(200);
+		expect(await response.text()).toContain("About Snap Store Updates");
+	});
+
+	it("rejects an unauthenticated catalogue sync", async () => {
+		const response = await fetchWorker(
+			new Request("http://example.com/api/sync", { method: "POST" })
+		);
+
+		expect(response.status).toBe(401);
+		expect(await response.json()).toEqual({ error: "Unauthorized" });
+	});
+
+	it("returns 404 for an unknown route", async () => {
+		const response = await SELF.fetch("http://example.com/does-not-exist");
+
+		expect(response.status).toBe(404);
+		expect(await response.text()).toBe("Not Found");
 	});
 });
