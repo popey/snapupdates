@@ -15,7 +15,7 @@
 		"@types/node": "^25.5.0",
 		"better-sqlite3": "^12.8.0",
 		"sass": "^1.99.0",
-		"sharp": "^0.34.5",
+		"sharp": "^0.35.3",
 		"typescript": "^5.5.2",
 		"vanilla-framework": "^4.48.0",
 		"vitest": "^4.1.0",
