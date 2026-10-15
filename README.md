@@ -16,7 +16,8 @@ Track changes in the [Canonical Snap Store](https://snapcraft.io) — new snaps,
 - **Snap Detail** — screenshots, version history with revision tracking, metadata, and external links
 - **Search** — full-text search across all snaps
 - **RSS Feeds** — per-snap, per-publisher, per-category, or firehose
-- **No JavaScript** — fully server-rendered HTML (except nav toggle)
+- **Daily Activity Charts** — total tracked snaps and daily new/updated counts, with 7, 30, 90 day, 1 year, 2 year, and all-time views; hover or focus for values
+- **No JavaScript** — fully server-rendered HTML and SVG charts (except nav toggle)
 - **Mobile Friendly** — responsive layout using Canonical's [Vanilla Framework](https://vanillaframework.io)
 
 ## How It Works
@@ -24,6 +25,8 @@ Track changes in the [Canonical Snap Store](https://snapcraft.io) — new snaps,
 A Cloudflare Worker syncs the full snap catalogue every 15 minutes via cron, storing snapshots in a D1 database. Changes are detected by comparing each sync against the previous state. A separate daily job syncs snap-to-category mappings.
 
 The same Worker serves all HTML pages, RSS feeds, the sitemap, and the API.
+
+Activity charts use UTC calendar days and count distinct snaps detected in completed syncs, excluding the initial catalogue import from new activity. The total is the cumulative number of snaps first seen, including entries no longer in the store. Days without a completed sync have unknown activity. Chart windows stop at the available history and refresh on subsequent page loads after syncs, subject to the five-minute page cache.
 
 ## Tech Stack
 

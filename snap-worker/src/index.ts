@@ -1,3 +1,5 @@
+// @specstamp {"spec":"fd2438b01c79","code":"fe4f6447476b","spec_path":"specs/daily-activity.spec.md","date":"2026-10-15"}
+import { loadActivity, renderActivity, preserveActivityRange } from './activity';
 export interface Env {
 	DB: D1Database;
 	API_BASE_URL: string;
@@ -221,6 +223,14 @@ function renderLayout(title: string, content: string, activePage: string = '', r
   <link rel="stylesheet" href="${VANILLA_CSS}" />
   <link rel="alternate" type="application/rss+xml" title="${escapeHtml(rssTitle)}" href="${rssHref}">
   <style>
+    .p-strip.activity-section { padding-top: 1rem; padding-bottom: .5rem; }
+    .activity-section h2 { margin-bottom: .5rem; }
+    .activity-section + .p-strip { padding-top: 1rem; }
+    .activity-chart { display: block; }
+    .activity-chart text { font: 14px Ubuntu, sans-serif; }
+    .activity-tooltip { display: none; }
+    .activity-day:hover .activity-tooltip, .activity-day:focus .activity-tooltip { display: block; }
+    .activity-day:focus { outline: none; }
     .snap-icon { width: 2rem; height: 2rem; border-radius: .25rem; vertical-align: middle; margin-right: .5rem; }
     .snap-icon--large { width: 3rem; height: 3rem; border-radius: .375rem; }
     .snap-icon--hero { width: 6rem; height: 6rem; border-radius: .5rem; }
@@ -789,7 +799,8 @@ function generateIndexContent(
 	page: number,
 	totalPages: number,
 	sort: 'snap' | 'when' = 'when',
-	sortDesc: boolean = true
+	sortDesc: boolean = true,
+	chart: string = ''
 ): string {
 	// Clicking the active column toggles direction; clicking the other column uses its default (snap=asc, when=desc)
 	const snapHref = sort === 'snap' ? (sortDesc ? '/?sort=snap' : '/?sort=-snap') : '/?sort=snap';
@@ -826,6 +837,8 @@ function generateIndexContent(
         </div>
       </div>
     </section>
+
+    ${chart}
 
     <section class="p-strip">
       <div class="row">
@@ -1432,6 +1445,8 @@ export default {
 			}
 			const paged = filtered.slice(offset, offset + perPage);
 
+			const activity = await loadActivity(env.DB, url.searchParams.get('range') || '30');
+			const chart = renderActivity(activity.days, 'all', url);
 			const content = generateIndexContent(
 				{
 					totalSnaps: statsResult?.total || 0,
@@ -1443,10 +1458,11 @@ export default {
 				page,
 				totalPages,
 				sort,
-				sortDesc
+				sortDesc,
+				chart
 			);
 
-			return new Response(renderLayout('Snap Store Updates - Recent Changes in the Snap Store', content, 'recent', '/rss', 'Snap Store Updates RSS', { description: 'Track new and updated snaps in the Canonical Snap Store. See what publishers are shipping, which apps got updates, and discover new snaps as they land.', image: `${baseUrl}/og-default.png`, url: baseUrl, baseUrl }), {
+			return new Response(renderLayout('Snap Store Updates - Recent Changes in the Snap Store', preserveActivityRange(content, url), 'recent', '/rss', 'Snap Store Updates RSS', { description: 'Track new and updated snaps in the Canonical Snap Store. See what publishers are shipping, which apps got updates, and discover new snaps as they land.', image: `${baseUrl}/og-default.png`, url: baseUrl, baseUrl }), {
 				headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300' },
 			});
 		}
@@ -1473,7 +1489,9 @@ export default {
 				.all<Snap>();
 
 			const content = generateSnapCardGrid(result.results || [], 'New snaps in the last 30 days', page, totalPages, '/new');
-			return new Response(renderLayout('New Snaps - Snap Store Updates', content, 'new', '/new/rss', 'New Snaps RSS', { description: 'New snaps recently published to the Canonical Snap Store. Discover fresh apps, tools and services as they arrive from publishers worldwide.', image: `${baseUrl}/og-default.png`, url: `${baseUrl}/new`, baseUrl }), {
+			const activity = await loadActivity(env.DB, url.searchParams.get('range') || '30');
+			const chart = renderActivity(activity.days, 'new', url);
+			return new Response(renderLayout('New Snaps - Snap Store Updates', chart + preserveActivityRange(content, url), 'new', '/new/rss', 'New Snaps RSS', { description: 'New snaps recently published to the Canonical Snap Store. Discover fresh apps, tools and services as they arrive from publishers worldwide.', image: `${baseUrl}/og-default.png`, url: `${baseUrl}/new`, baseUrl }), {
 				headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300' },
 			});
 		}
@@ -1500,7 +1518,9 @@ export default {
 			const paged = deduped.slice(offset, offset + limit);
 
 			const content = generateUpdatedContent(paged, page, totalPages);
-			return new Response(renderLayout('Updated Snaps - Snap Store Updates', content, 'updated', '/updated/rss', 'Updated Snaps RSS', { description: 'Recently updated snaps in the Canonical Snap Store. See version changes, track which apps are actively maintained, and follow your favourite snaps.', image: `${baseUrl}/og-default.png`, url: `${baseUrl}/updated`, baseUrl }), {
+			const activity = await loadActivity(env.DB, url.searchParams.get('range') || '30');
+			const chart = renderActivity(activity.days, 'updated', url);
+			return new Response(renderLayout('Updated Snaps - Snap Store Updates', chart + preserveActivityRange(content, url), 'updated', '/updated/rss', 'Updated Snaps RSS', { description: 'Recently updated snaps in the Canonical Snap Store. See version changes, track which apps are actively maintained, and follow your favourite snaps.', image: `${baseUrl}/og-default.png`, url: `${baseUrl}/updated`, baseUrl }), {
 				headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300' },
 			});
 		}
@@ -1579,6 +1599,9 @@ export default {
 
           <h2>How it works</h2>
           <p>The site syncs the full catalogue from the public Snap Store API every 15 minutes and currently tracks over 10,000 snaps. Category mappings are synced daily. There's no account or login required &mdash; it's a read-only view of what's happening in the store.</p>
+
+          <h2>Activity charts</h2>
+          <p>Charts use UTC calendar days, including the partial current day. New and updated counts show distinct snaps detected per day in completed syncs, rather than their publication dates. The initial catalogue import is excluded from new counts. Days without a completed sync have unknown activity. Total tracked counts all snaps first seen, including those no longer in the store. Charts cover the available tracking history and refresh on subsequent page loads after syncs, subject to the five-minute page cache.</p>
 
           <h2>Feedback</h2>
           <p>Suggestions, bug reports, and feature requests are all welcome. If there are views or filters that would be useful, information that's missing, or things that look broken &mdash; I'd love to hear about it. You can find me at <a href="https://popey.me">popey.me</a>.</p>
